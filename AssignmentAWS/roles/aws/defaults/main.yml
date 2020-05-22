@@ -1,0 +1,8 @@
+---
+vpc_cidr: 10.42.0.0/16
+vpc_subnet_cidr: 10.42.0.0/24
+aws_region: us-west-2
+vpc_prefix: ACIT4640
+aws_az: us-west-2a
+ec2_instance_name: ACIT4640
+ami_id: ami-0bc06212a56393ee1

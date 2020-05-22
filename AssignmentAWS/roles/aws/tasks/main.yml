@@ -1,0 +1,11 @@
+---
+- import_tasks: vpc.yml
+- import_tasks: ec2.yml
+
+- name: Wait for system to become reachable
+  wait_for:
+    port: 22
+    host: "{{ eip_data.public_ip }}"
+
+- name: refresh Ansible inventory
+  meta: refresh_inventory

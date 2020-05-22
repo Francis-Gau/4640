@@ -1,0 +1,104 @@
+---
+- name: get VPC info
+  ec2_vpc_net_facts:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_prefix }}_VPC"
+  register: vpc_info
+
+- name: get VPC subnet info
+  ec2_vpc_subnet_facts:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_prefix }}_subnet"
+  register: vpc_subnet
+
+- name: get VPC routing table
+  ec2_vpc_route_table_facts:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_prefix }}_rtbl"
+  register: vpc_route
+
+- name: get info of EC2 instance
+  ec2_instance_facts:
+    region: "{{ aws_region }}"
+    filters:
+      instance-state-name: running
+      "tag:Name": "{{ ec2_instance_name }}"     
+  register: ec2_instance
+
+- name: get info of internet gateway
+  ec2_vpc_igw_facts:
+    region: "{{ aws_region }}"
+    filters:
+        "tag:Name": "{{ vpc_prefix }}_igw"
+  register: igw_info
+
+- name: get EIP info from ec2
+  ec2_eip_info:
+    region: "{{ aws_region }}"
+    filters:
+      instance-id: "{{ ec2_instance.instances[0].instance_id }}"
+  register: ec2_eip
+
+- name: get security group info
+  ec2_group_facts:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_prefix }}_SecGroup"
+  register: sec_info
+
+
+- name: delete EIP from instance
+  ec2_eip:
+    region: "{{ aws_region }}"
+    device_id: "{{ ec2_instance.instances[0].instance_id }}"
+    release_on_disassociation: yes
+    state: absent
+
+- name: delete ec2 instance
+  ec2_instance:
+    wait: yes
+    wait_timeout: 400
+    region: "{{ aws_region }}"
+    instance_ids: 
+      - "{{ ec2_instance.instances[0].instance_id }}"
+    state: absent
+
+- name: delete routing table
+  ec2_vpc_route_table:
+    route_table_id: "{{ vpc_route.route_tables[0].associations[0].route_table_id }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    region: "{{aws_region}}"
+    lookup: id
+    state: absent
+
+- name: delete Security Group
+  ec2_group:
+    region: "{{aws_region}}"
+    group_id: "{{sec_info.security_groups[0].group_id}}"
+    state: absent
+
+- name: delete internet gateway
+  ec2_vpc_igw:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    state: absent
+
+- name: delete VPC subnet
+  ec2_vpc_subnet:
+    state: absent
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+    cidr: "{{ vpc_subnet.subnets[0].cidr_block }}"
+
+- name: delete VPC
+  ec2_vpc_net:
+    cidr_block: "{{ vpc_cidr }}"
+    name: "{{ vpc_prefix }}_VPC"
+    region: "{{ aws_region }}"
+    state: absent
+
+
+...

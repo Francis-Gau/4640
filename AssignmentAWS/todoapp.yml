@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Get my current IP address
+      uri:
+        url: http://checkip.amazonaws.com/
+        return_content: yes
+      register: my_ip
+      tags:
+        - provision
+    - import_role:
+        name: aws
+      tags:
+        - provision
+    - import_role:
+        name: aws_cleanup
+      tags: [cleanup, never]

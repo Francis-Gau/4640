@@ -1,0 +1,10 @@
+---
+# defaults file for aws
+vpc_cidr: 10.42.0.0/16
+vpc_subnet_cidr: 10.42.0.0/24
+aws_region: us-west-2
+vpc_prefix: ACIT4640
+aws_az: us-west-2a
+ec2_instance_name: ACIT4640
+ami_id: ami-01ed306a12b7d1c96
+sec_group: ACIT4640_SecGroup
